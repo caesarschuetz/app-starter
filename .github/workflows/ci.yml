@@ -1,0 +1,46 @@
+# CI: checks every pull request and every push to main.
+# Red = do not merge, do not build. Same locally: `npm run check`.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Types / Lint / Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  bundle:
+    # Builds the JS bundle like EAS does: catches missing packages/imports without an EAS build.
+    name: Bundle (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ios, android]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx expo export --platform ${{ matrix.platform }} --output-dir dist/ci-${{ matrix.platform }}
+        env:
+          CI: 1

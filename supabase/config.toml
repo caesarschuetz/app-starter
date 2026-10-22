@@ -1,0 +1,8 @@
+# Minimal Supabase CLI config. `supabase link --project-ref <your-ref>` connects it to your project.
+project_id = "app-starter"
+
+[functions.ai]
+verify_jwt = true
+
+[functions.revenuecat-webhook]
+verify_jwt = false
